@@ -1,0 +1,41 @@
+{
+  "task": "신발 손상 판정: 정상 / outsole / heel lining / outsole + heel lining",
+  "class_names": {
+    "0": "outsole",
+    "1": "heel lining"
+  },
+  "members": [
+    {
+      "file": "model1_E1_yolo11s_640_long_neg1_os3_augstrong_v5p3.pt",
+      "experiment": "E1_yolo11s_640_long_neg1_os3_augstrong_v5p3",
+      "imgsz": 640,
+      "model_name": "yolo11s.pt"
+    },
+    {
+      "file": "model2_E1_yolo11s_640_long_neg1_v5p3.pt",
+      "experiment": "E1_yolo11s_640_long_neg1_v5p3",
+      "imgsz": 640,
+      "model_name": "yolo11s.pt"
+    },
+    {
+      "file": "model3_E1_yolo26s_640_long_neg1_os3_augstrong_v5p3.pt",
+      "experiment": "E1_yolo26s_640_long_neg1_os3_augstrong_v5p3",
+      "imgsz": 640,
+      "model_name": "yolo26s.pt"
+    }
+  ],
+  "thresholds": {
+    "outsole": 0.05,
+    "heel lining": 0.13
+  },
+  "decision_rule": "모델별 클래스 최고 박스 신뢰도의 평균 >= 클래스 임계값이면 해당 손상 있음",
+  "max_side": 1280,
+  "jpeg_quality": 93,
+  "conf": 0.001,
+  "iou": 0.7,
+  "max_det": 100,
+  "validation_expected_correct_of_100": 71.9,
+  "split_version": "v5_batch15_restored_test247",
+  "ultralytics_version": "8.4.182",
+  "created": "2026-10-18T11:52:41.149513+00:00"
+}

@@ -91,3 +91,10 @@
 
 /* 말풍선 글씨에만 온글잎 박다현체 적용 */
 .hero-bubble span,.confirm-bubble{font-family:'Ownglyph Park Dahyun','Noto Sans KR',sans-serif;font-weight:400;font-synthesis:none}
+
+/* 실제 분석 결과와 처리 중 상태 */
+.result-info article b.verdict{font-size:18px;white-space:nowrap}
+#prediction{overflow-wrap:anywhere}
+#analysis-error{text-align:center;line-height:1.7}
+.loading-track span{width:40%;animation:analyzing 1.4s ease-in-out infinite}
+@keyframes analyzing{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
