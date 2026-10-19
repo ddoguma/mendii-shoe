@@ -140,3 +140,5 @@
   .result-info article b.verdict{font-size:18px}
   .result-info .result-summary h2{font-size:23px}
 }
+
+#prediction.suspected{color:var(--orange)}

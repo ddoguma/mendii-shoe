@@ -98,6 +98,7 @@ function renderPrediction(data) {
     'outsole + heel lining': '밑창 및 뒤꿈치 안감 손상 의심!',
   };
   $('#prediction').textContent = predictionLabels[data.prediction] || data.prediction;
+  $('#prediction').classList.toggle('suspected', ['outsole', 'heel lining', 'outsole + heel lining'].includes(data.prediction));
   const rows = Array.isArray(data.results) ? data.results : [];
   for (const disease of ['outsole', 'heel_lining']) {
     const row = rows.find(item => item.disease === disease);
