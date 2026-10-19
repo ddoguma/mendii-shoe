@@ -93,9 +93,9 @@ function renderPrediction(data) {
   // 서버 판정은 재계산하지 않고 표시 문구만 한글로 바꿉니다.
   const predictionLabels = {
     '정상': '정상',
-    'outsole': '밑창 손상',
-    'heel lining': '뒤꿈치 안감 손상',
-    'outsole + heel lining': '밑창 및 뒤꿈치 안감 손상',
+    'outsole': '밑창 손상 의심!',
+    'heel lining': '뒤꿈치 안감 손상 의심!',
+    'outsole + heel lining': '밑창 및 뒤꿈치 안감 손상 의심!',
   };
   $('#prediction').textContent = predictionLabels[data.prediction] || data.prediction;
   const rows = Array.isArray(data.results) ? data.results : [];

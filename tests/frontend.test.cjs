@@ -30,7 +30,7 @@ for (const prediction of ['정상','outsole','heel lining','outsole + heel linin
     assert.equal(request.url,'/predict');
     assert.equal(request.options.body.get('file'),file);
     assert.equal(request.options.headers,undefined);
-    assert.equal(app.node('#prediction').textContent, {'정상':'정상','outsole':'밑창 손상','heel lining':'뒤꿈치 안감 손상','outsole + heel lining':'밑창 및 뒤꿈치 안감 손상'}[prediction]);
+    assert.equal(app.node('#prediction').textContent, {'정상':'정상','outsole':'밑창 손상 의심!','heel lining':'뒤꿈치 안감 손상 의심!','outsole + heel lining':'밑창 및 뒤꿈치 안감 손상 의심!'}[prediction]);
     assert.equal(app.node('#outsole-verdict').textContent,'의심');
     assert.equal(app.node('#outsole-verdict').classList.values.has('suspected'),true);
     assert.equal(app.node('#heel_lining-verdict').classList.values.has('suspected'),false);
