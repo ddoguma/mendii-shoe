@@ -98,3 +98,5 @@
 #analysis-error{text-align:center;line-height:1.7}
 .loading-track span{width:40%;animation:analyzing 1.4s ease-in-out infinite}
 @keyframes analyzing{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
+
+.result-info article b.verdict.suspected{color:var(--orange)}

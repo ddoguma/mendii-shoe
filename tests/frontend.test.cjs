@@ -6,7 +6,7 @@ function setup(fetch, hostname = 'localhost') {
   const nodes = new Map();
   const node = key => {
     if (!nodes.has(key)) nodes.set(key, {hidden:false, textContent:'', value:'', listeners:{},
-      classList:{toggle(){},add(){},remove(){}}, setAttribute(){},removeAttribute(){},focus(){},
+      classList:{values:new Set(),toggle(name,on){if(on)this.values.add(name);else this.values.delete(name);},add(){},remove(){}}, setAttribute(){},removeAttribute(){},focus(){},
       addEventListener(type,fn){this.listeners[type]=fn;}});
     return nodes.get(key);
   };
@@ -32,6 +32,8 @@ for (const prediction of ['정상','outsole','heel lining','outsole + heel linin
     assert.equal(request.options.headers,undefined);
     assert.equal(app.node('#prediction').textContent,prediction);
     assert.equal(app.node('#outsole-verdict').textContent,'의심');
+    assert.equal(app.node('#outsole-verdict').classList.values.has('suspected'),true);
+    assert.equal(app.node('#heel_lining-verdict').classList.values.has('suspected'),false);
     assert.equal(app.node('#result-view').hidden,false);
   });
 }

@@ -97,7 +97,7 @@ function renderPrediction(data) {
     const row = rows.find(item => item.disease === disease);
     const verdict = $(`#${disease}-verdict`);
     verdict.textContent = row?.verdict || '정보 없음';
-    verdict.classList.toggle('orange', row?.verdict === '의심');
+    verdict.classList.toggle('suspected', row?.verdict?.trim() === '의심');
   }
   $('#result-image').src = imageUrl;
 }
