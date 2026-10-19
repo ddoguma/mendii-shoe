@@ -100,3 +100,43 @@
 @keyframes analyzing{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
 
 .result-info article b.verdict.suspected{color:var(--orange)}
+
+/* 표시한 안내와 결과 문구의 가독성 개선 */
+.hero-actions .button{font-size:18px;padding:18px 30px;gap:26px}
+.tags span{font-size:12px;padding:8px 14px}
+.hero-bubble{width:42%;max-width:220px;min-height:110px;padding:20px}
+.hero-bubble span{font-size:24px;line-height:1.4}
+.dropzone h3{font-size:23px;line-height:1.5}
+.dropzone p{font-size:16px}
+.dropzone small{font-size:12px}
+.photo-tip-heading h2{font-size:20px;word-break:keep-all}
+.photo-tip-heading h2 span{font-size:13px}
+.photo-guide .tip-character{flex-shrink:0;width:80px}
+.result-info h3{font-size:18px;line-height:1.6;word-break:keep-all}
+.result-info h3 span{font-size:13px}
+.result-info article p{font-size:14px;line-height:1.9;margin-bottom:20px;word-break:keep-all}
+.result-info article b.verdict{font-size:20px}
+.result-info .result-summary h2{font-size:28px;line-height:1.5;letter-spacing:-1px}
+@media(max-width:1000px){
+  .hero-bubble span{font-size:21px}
+  .hero-bubble{padding:16px 12px;min-height:96px}
+  .photo-tip-heading h2{font-size:18px}
+  .photo-guide .tip-character{width:65px}
+  .result-info .result-summary h2{font-size:24px}
+}
+@media(max-width:700px){
+  .hero-actions .button{font-size:16px;padding:16px 25px}
+  .tags span{font-size:11px;padding:7px 11px}
+  .hero-bubble{min-height:85px;width:44%;padding:14px 12px}
+  .hero-bubble span{font-size:19px}
+  .dropzone h3{font-size:21px}
+  .dropzone p{font-size:14px}
+  .dropzone small{font-size:11px}
+  .photo-tip-heading h2{font-size:17px}
+  .photo-tip-heading h2 span{font-size:12px}
+  .photo-guide .tip-character{width:55px}
+  .result-info h3{font-size:16px}
+  .result-info article p{font-size:13px}
+  .result-info article b.verdict{font-size:18px}
+  .result-info .result-summary h2{font-size:23px}
+}

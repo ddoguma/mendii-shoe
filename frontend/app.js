@@ -90,8 +90,14 @@ function renderPrediction(data) {
   if (typeof data.prediction !== 'string' || !data.prediction.trim()) {
     throw new Error('분석 결과를 확인할 수 없어요. 다시 시도해 주세요.');
   }
-  // 최종 판정은 서버 값을 그대로 표시합니다. 임계값을 다시 계산하지 않습니다.
-  $('#prediction').textContent = data.prediction;
+  // 서버 판정은 재계산하지 않고 표시 문구만 한글로 바꿉니다.
+  const predictionLabels = {
+    '정상': '정상',
+    'outsole': '밑창 손상',
+    'heel lining': '뒤꿈치 안감 손상',
+    'outsole + heel lining': '밑창 및 뒤꿈치 안감 손상',
+  };
+  $('#prediction').textContent = predictionLabels[data.prediction] || data.prediction;
   const rows = Array.isArray(data.results) ? data.results : [];
   for (const disease of ['outsole', 'heel_lining']) {
     const row = rows.find(item => item.disease === disease);
