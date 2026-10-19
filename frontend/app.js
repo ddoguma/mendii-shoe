@@ -95,7 +95,9 @@ function renderPrediction(data) {
   const rows = Array.isArray(data.results) ? data.results : [];
   for (const disease of ['outsole', 'heel_lining']) {
     const row = rows.find(item => item.disease === disease);
-    $(`#${disease}-verdict`).textContent = row?.verdict || '정보 없음';
+    const verdict = $(`#${disease}-verdict`);
+    verdict.textContent = row?.verdict || '정보 없음';
+    verdict.classList.toggle('orange', row?.verdict === '의심');
   }
   $('#result-image').src = imageUrl;
 }
