@@ -1,6 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const views = ['upload', 'confirm', 'loading', 'result'];
 let selectedFile = null;
+let photos = [];
 let imageUrl = null;
 let analysisController = null;
 const remoteApi = location.hostname.endsWith('.github.io')
@@ -32,7 +33,10 @@ function resetSelection() {
   analysisController = null;
   selectionVersion++;
   selectedFile = null;
-  if (imageUrl) URL.revokeObjectURL(imageUrl);
+  photos.forEach(photo => URL.revokeObjectURL(photo.url));
+  photos = [];
+  $('#photo-list').replaceChildren();
+  $('#result-list').replaceChildren();
   imageUrl = null;
   $('#file').value = '';
   $('#preview').removeAttribute('src');
@@ -52,40 +56,64 @@ $('#back').addEventListener('click', () => {
   } else goHome();
 });
 document.querySelectorAll('.logo').forEach(link => link.addEventListener('click', goHome));
-async function selectFile(file) {
-  if (!file) return;
+function photoButtons(selector, onSelect) {
+  const container = $(selector);
+  container.replaceChildren();
+  photos.forEach((photo, index) => {
+    const button = document.createElement('button');
+    button.className = 'text-button';
+    button.textContent = `${index + 1}. ${photo.file.name}`;
+    button.addEventListener('click', () => onSelect(photo, index));
+    container.appendChild(button);
+  });
+}
+function previewPhoto(photo, index) {
+  $('#preview').src = photo.url;
+  $('#file-name').textContent = `${index + 1}/${photos.length} · ${photo.file.name}`;
+}
+async function selectFiles(files) {
+  if (!files.length) return;
   const version = ++selectionVersion;
   $('#error').textContent = '';
-  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-    $('#error').textContent = 'JPG, PNG, WEBP 사진을 선택해 주세요.';
+  const candidates = [];
+  try {
+    for (const file of files) {
+      if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+        throw new Error(`${file.name}: JPG, PNG, WEBP 사진을 선택해 주세요.`);
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(`${file.name}: 사진 크기는 10MB 이하로 올려주세요.`);
+      }
+      const url = URL.createObjectURL(file);
+      candidates.push({file, url});
+      const candidate = new Image();
+      candidate.src = url;
+      try { await candidate.decode(); }
+      catch { throw new Error(`${file.name}: 사진을 열 수 없어요. 다른 사진을 선택해 주세요.`); }
+    }
+  } catch (error) {
+    candidates.forEach(photo => URL.revokeObjectURL(photo.url));
+    if (version === selectionVersion) $('#error').textContent = error.message;
     return;
   }
-  if (file.size > 10 * 1024 * 1024) {
-    $('#error').textContent = '사진 크기는 10MB 이하로 올려주세요.';
+  if (version !== selectionVersion) {
+    candidates.forEach(photo => URL.revokeObjectURL(photo.url));
     return;
   }
-  const candidateUrl = URL.createObjectURL(file);
-  const candidate = new Image();
-  try { candidate.src = candidateUrl; await candidate.decode(); }
-  catch {
-    URL.revokeObjectURL(candidateUrl);
-    if (version === selectionVersion) $('#error').textContent = '사진을 열 수 없어요. 다른 사진을 선택해 주세요.';
-    return;
-  }
-  if (version !== selectionVersion) { URL.revokeObjectURL(candidateUrl); return; }
-  if (imageUrl) URL.revokeObjectURL(imageUrl);
-  selectedFile = file;
-  imageUrl = candidateUrl;
-  $('#preview').src = imageUrl;
-  $('#file-name').textContent = file.name;
+  photos.forEach(photo => URL.revokeObjectURL(photo.url));
+  photos = candidates;
+  selectedFile = photos[0].file;
+  imageUrl = photos[0].url;
+  previewPhoto(photos[0], 0);
+  photoButtons('#photo-list', previewPhoto);
   showView('confirm');
 }
-$('#file').addEventListener('change', event => selectFile(event.target.files[0]));
+$('#file').addEventListener('change', event => selectFiles(Array.from(event.target.files)));
 $('#replace').addEventListener('click', () => { resetSelection(); showView('upload'); });
 $('#dropzone').addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); $('#file').click(); } });
 ['dragenter','dragover'].forEach(type => $('#dropzone').addEventListener(type, event => { event.preventDefault(); $('#dropzone').classList.add('dragging'); }));
 ['dragleave','drop'].forEach(type => $('#dropzone').addEventListener(type, event => { event.preventDefault(); $('#dropzone').classList.remove('dragging'); }));
-$('#dropzone').addEventListener('drop', event => selectFile(event.dataTransfer.files[0]));
+$('#dropzone').addEventListener('drop', event => selectFiles(Array.from(event.dataTransfer.files)));
 function renderPrediction(data) {
   if (typeof data.prediction !== 'string' || !data.prediction.trim()) {
     throw new Error('분석 결과를 확인할 수 없어요. 다시 시도해 주세요.');
@@ -115,11 +143,17 @@ $('#analyze').addEventListener('click', async () => {
   analysisController = controller;
   $('#analysis-error').textContent = '';
   // 선택한 File 객체를 그대로 전송해 원본 바이트와 EXIF 정보를 보존합니다.
-  const form = new FormData();
-  form.append('file', selectedFile);
   showView('loading');
-  const timeout = setTimeout(() => controller.abort(), 120000);
+  let timeout;
+  let activePhoto;
   try {
+    for (const [index, photo] of photos.entries()) {
+    activePhoto = photo;
+    if (photo.data) continue;
+    $('#loading-progress').textContent = `${index + 1}/${photos.length}장 분석 중 · ${photo.file.name}`;
+    const form = new FormData();
+    form.append('file', photo.file);
+    timeout = setTimeout(() => controller.abort(), 120000);
     const response = await fetch(predictUrl, {method: 'POST', body: form, signal: controller.signal,
       ...(remoteApi ? {headers: {'ngrok-skip-browser-warning': 'true'}} : {})});
     if (!response.ok) {
@@ -129,7 +163,18 @@ $('#analyze').addEventListener('click', async () => {
     }
     const data = await response.json();
     if (version !== selectionVersion || analysisController !== controller) return;
+    imageUrl = photo.url;
     renderPrediction(data);
+    photo.data = data;
+    clearTimeout(timeout);
+    }
+    const showResult = (photo, index) => {
+      imageUrl = photo.url;
+      renderPrediction(photo.data);
+      $('#result-file-name').textContent = `${index + 1}/${photos.length} · ${photo.file.name}`;
+    };
+    photoButtons('#result-list', showResult);
+    showResult(photos[0], 0);
     showView('result');
   } catch (error) {
     if (version !== selectionVersion || analysisController !== controller) return;
@@ -137,6 +182,7 @@ $('#analyze').addEventListener('click', async () => {
       ? '분석 시간이 오래 걸리고 있어요. 잠시 후 다시 시도해 주세요.'
       : error instanceof TypeError ? '분석 서버에 연결할 수 없어요. 서버 실행 상태를 확인해 주세요.'
       : error instanceof SyntaxError ? '분석 결과를 읽을 수 없어요. 다시 시도해 주세요.' : error.message;
+    if (activePhoto) $('#analysis-error').textContent = `${activePhoto.file.name}: ${$('#analysis-error').textContent}`;
     showView('confirm');
   } finally {
     clearTimeout(timeout);

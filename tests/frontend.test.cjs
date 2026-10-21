@@ -6,19 +6,20 @@ function setup(fetch, hostname = 'localhost') {
   const nodes = new Map();
   const node = key => {
     if (!nodes.has(key)) nodes.set(key, {hidden:false, textContent:'', value:'', listeners:{},
+      children:[], replaceChildren(){this.children=[];},appendChild(child){this.children.push(child);},
       classList:{values:new Set(),toggle(name,on){if(on)this.values.add(name);else this.values.delete(name);},add(){},remove(){}}, setAttribute(){},removeAttribute(){},focus(){},
       addEventListener(type,fn){this.listeners[type]=fn;}});
     return nodes.get(key);
   };
   vm.runInNewContext(readFileSync('frontend/app.js','utf8'), {
-    document:{querySelector:node,querySelectorAll:()=>[]},
+    document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>node(Symbol())},
     location:{hostname,port:'8000'}, window:{scrollTo(){},MENDII_CONFIG:{apiOrigin:'https://thrash-sessions-tasty.ngrok-free.dev'}},
     URL:{createObjectURL:()=> 'blob:original',revokeObjectURL(){}},
     Image:class {async decode(){}}, TypeError, SyntaxError, FormData, AbortController, setTimeout, clearTimeout, fetch,
   });
-  return {node, async select(){
+  return {node, async select(files){
     const file = new File([new Uint8Array([255,216,255,225,0,6,69,120,105,102])], 'original.jpg', {type:'image/jpeg'});
-    await node('#file').listeners.change({target:{files:[file]}});
+    await node('#file').listeners.change({target:{files:files || [file]}});
     return file;
   }, analyze:()=>node('#analyze').listeners.click()};
 }
@@ -68,4 +69,44 @@ test('GitHub Pages sends the original file to the Colab API with ngrok header', 
   assert.equal(request.url,'https://thrash-sessions-tasty.ngrok-free.dev/predict');
   assert.equal(request.options.body.get('file'),file);
   assert.equal(request.options.headers['ngrok-skip-browser-warning'],'true');
+});
+
+test('multiple photos upload originals sequentially and show individual results', async()=>{
+  const uploaded=[];
+  const app=setup(async(url, options)=>{
+    uploaded.push(options.body.get('file'));
+    return {ok:true,json:async()=>({prediction:uploaded.length === 1 ? '정상' : 'outsole'})};
+  });
+  const files=['first.jpg','second.jpg'].map(name=>new File(['image'],name,{type:'image/jpeg'}));
+  await app.select(files);
+  assert.equal(app.node('#photo-list').children.length,2);
+  app.node('#photo-list').children[1].listeners.click();
+  assert.match(app.node('#file-name').textContent,/2\/2.*second.jpg/);
+  await app.analyze();
+  assert.deepEqual(uploaded,files);
+  assert.equal(app.node('#prediction').textContent,'정상');
+  app.node('#result-list').children[1].listeners.click();
+  assert.equal(app.node('#prediction').textContent,'밑창 손상 의심!');
+});
+test('retry keeps successful photos and retries failed photos',async()=>{
+  let calls=0;
+  const app=setup(async()=>{
+    calls++;
+    if(calls===2) throw new TypeError('offline');
+    return {ok:true,json:async()=>({prediction:'정상'})};
+  });
+  await app.select(['a.jpg','b.jpg'].map(name=>new File(['image'],name,{type:'image/jpeg'})));
+  await app.analyze();
+  assert.match(app.node('#analysis-error').textContent,/b.jpg/);
+  await app.analyze();
+  assert.equal(calls,3);
+  assert.equal(app.node('#result-view').hidden,false);
+});
+test('invalid photo in a selection prevents the batch from being submitted',async()=>{
+  let calls=0;
+  const app=setup(async()=>{calls++;});
+  await app.select([new File(['ok'],'a.jpg',{type:'image/jpeg'}),new File(['bad'],'b.txt',{type:'text/plain'})]);
+  await app.analyze();
+  assert.match(app.node('#error').textContent,/b.txt/);
+  assert.equal(calls,0);
 });

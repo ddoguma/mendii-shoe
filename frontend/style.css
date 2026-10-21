@@ -142,3 +142,7 @@
 }
 
 #prediction.suspected{color:var(--orange)}
+
+.photo-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; max-height: 180px; overflow: auto; }
+.photo-list button { border: 1px solid #ddd; border-radius: 8px; padding: 8px 12px; overflow-wrap: anywhere; text-align: left; }
+.photo-list button:focus { outline: 2px solid #d86538; outline-offset: 2px; }

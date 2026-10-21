@@ -19,6 +19,9 @@ python -m uvicorn server:app --app-dir model --host 0.0.0.0 --port 8000
 
 ## 분석 연결
 
+- 사진을 여러 장 선택하거나 드래그해서 등록할 수 있습니다. 사진당 최대 10MB이며, 선택한 사진과 사진별 분석 결과는 목록을 눌러 확인합니다.
+- 여러 사진은 원본 파일 그대로 한 장씩 순서대로 분석합니다. 실패 후 재시도하면 성공한 사진은 유지하고 나머지 사진부터 진행합니다.
+
 - 원본 `File`을 수정 없이 `POST /predict`의 multipart `file` 필드로 보냅니다. 프론트에서 리사이즈·회전·재인코딩하지 않습니다.
 - 최종 결과는 서버의 `prediction`을 그대로 표시합니다: `정상`, `outsole`, `heel lining`, `outsole + heel lining`.
 - 부위별 판정은 `results`의 `verdict`를 표시합니다. 프론트에서 임계값을 재계산하지 않습니다.
